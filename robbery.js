@@ -5,7 +5,7 @@
  * Реализовано оба метода и tryLater
  */
 
-exports.isStar = false;
+exports.isStar = true;
 
 
 var SEC_IN_MIN = 60;
@@ -14,12 +14,16 @@ var MONDAY = 'Mon, 5 Jan 1970 ';
 var TUESDAY = 'Tue, 6 Jan 1970 ';
 var WEDNESDAY = 'Wed, 7 Jan 1970 ';
 var THURSDAY = 'Thu, 8 Jan 1970 ';
+var FRIDAY = 'Fri, 9 Jan 1970 ';
+var SATURDAY = 'Sat, 10 Jan 1970 ';
 var WORK_DAYS = {
     'ВС': SUNDAY,
     'ПН': MONDAY,
     'ВТ': TUESDAY,
     'СР': WEDNESDAY,
-    'ЧТ': THURSDAY
+    'ЧТ': THURSDAY,
+    'ПТ': FRIDAY,
+    'СБ': SATURDAY
 };
 var GANGSTERS = ['Danny', 'Rusty', 'Linus'];
 
