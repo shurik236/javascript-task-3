@@ -5,7 +5,7 @@
  * Реализовано оба метода и tryLater
  */
 
-exports.isStar = true;
+exports.isStar = false;
 
 
 var SEC_IN_MIN = 60;
