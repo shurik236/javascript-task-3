@@ -28,7 +28,7 @@ var WORK_DAYS = {
 var GANGSTERS = ['Danny', 'Rusty', 'Linus'];
 
 function extractDay(timeString) {
-    var reg = /ВС|ПН|ВТ|СР|ЧТ/g;
+    var reg = /ВС|ПН|ВТ|СР|ЧТ|ПТ|СБ/g;
     var day = reg.exec(timeString)[0];
 
     return WORK_DAYS[day];
