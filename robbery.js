@@ -183,9 +183,9 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
             var stampGoTime = timesForTheJob[0];
             var zone = parseInt(extractZone(workingHours.from));
             var goTime = new Date(stampGoTime + zone * 60 * SEC_IN_MIN * 1000);
-            var hh = goTime.getHours();
-            var mm = goTime.getMinutes();
-            var dd = Object.keys(WORK_DAYS)[goTime.getDay()];
+            var hh = goTime.getUTCHours();
+            var mm = goTime.getUTCMinutes();
+            var dd = Object.keys(WORK_DAYS)[goTime.getUTCDay()];
 
             return template
                 .replace('%HH', zeroPadded(hh))
