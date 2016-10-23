@@ -30,6 +30,11 @@ function extractDay(timeString) {
     return WORK_DAYS[day];
 }
 
+function extractZone(timeString) {
+    var reg = /[0-2][0-9]:[0-5][0-9]\+(\d+)/g;
+
+    return reg.exec(timeString)[1];
+}
 
 function asTimeStamp(timeString, day) {
     if (day === undefined) {
@@ -173,7 +178,8 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
             }
             var stampGoTime = timesForTheJob[0];
             var goTime = new Date(stampGoTime);
-            var hh = goTime.getHours();
+            var zone = parseInt(extractZone(workingHours.from));
+            var hh = goTime.getHours() + zone;
             var mm = goTime.getMinutes();
             var dd = Object.keys(WORK_DAYS)[goTime.getDay()];
 
