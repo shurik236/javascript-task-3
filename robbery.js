@@ -177,9 +177,9 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return '';
             }
             var stampGoTime = timesForTheJob[0];
-            var goTime = new Date(stampGoTime);
             var zone = parseInt(extractZone(workingHours.from));
-            var hh = goTime.getHours() + zone;
+            var goTime = new Date(stampGoTime + zone * 60 * SEC_IN_MIN * 1000);
+            var hh = goTime.getHours();
             var mm = goTime.getMinutes();
             var dd = Object.keys(WORK_DAYS)[goTime.getDay()];
 
