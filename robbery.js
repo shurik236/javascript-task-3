@@ -35,9 +35,9 @@ function extractDay(timeString) {
 }
 
 function extractZone(timeString) {
-    var reg = /[0-2][0-9]:[0-5][0-9]\+(\d+)/g;
+    var reg = /([0-1][0-9]|2[0-3]):[0-5][0-9]\+(\d+)/g;
 
-    return reg.exec(timeString)[1];
+    return reg.exec(timeString)[2];
 }
 
 function asTimeStamp(timeString, day) {
@@ -45,7 +45,7 @@ function asTimeStamp(timeString, day) {
         day = extractDay(timeString);
     }
 
-    var reg = /([0-2][0-9]):([0-5][0-9])\+(\d+)/g;
+    var reg = /([0-1][0-9]|2[0-3]):([0-5][0-9])\+(\d+)/g;
     var time = reg.exec(timeString);
     var zone = time[3];
 
@@ -73,7 +73,12 @@ function gangsterInterval(entry) {
     return [asTimeStamp(entry.from), asTimeStamp(entry.to)];
 }
 
-function scheduleFitting(interval, gangsterSchedule) {
+function gangsterIsFree(interval, gangsterSchedule) {
+
+    if (gangsterSchedule === undefined) {
+
+        return true;
+    }
 
     for (var i = 0; i < gangsterSchedule.length; i++) {
         if (overlap(gangsterInterval(gangsterSchedule[i]), interval)) {
@@ -87,7 +92,7 @@ function scheduleFitting(interval, gangsterSchedule) {
 
 function goForIt(interval, schedule) {
     for (var i = 0; i < Object.keys(schedule).length; i++) {
-        if (!scheduleFitting(interval, schedule[GANGSTERS[i]])) {
+        if (!gangsterIsFree(interval, schedule[GANGSTERS[i]])) {
 
             return false;
         }
