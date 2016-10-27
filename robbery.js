@@ -9,23 +9,16 @@ exports.isStar = true;
 
 
 var SEC_IN_MIN = 60;
-var SUNDAY = 'Sun, 4 Jan 1970 ';
-var MONDAY = 'Mon, 5 Jan 1970 ';
-var TUESDAY = 'Tue, 6 Jan 1970 ';
-var WEDNESDAY = 'Wed, 7 Jan 1970 ';
-var THURSDAY = 'Thu, 8 Jan 1970 ';
-var FRIDAY = 'Fri, 9 Jan 1970 ';
-var SATURDAY = 'Sat, 10 Jan 1970 ';
+var MILLISECONDS = 1000;
 var WORK_DAYS = {
-    'ВС': SUNDAY,
-    'ПН': MONDAY,
-    'ВТ': TUESDAY,
-    'СР': WEDNESDAY,
-    'ЧТ': THURSDAY,
-    'ПТ': FRIDAY,
-    'СБ': SATURDAY
+    'ВС': 'Sun, 4 Jan 1970 ',
+    'ПН': 'Mon, 5 Jan 1970 ',
+    'ВТ': 'Tue, 6 Jan 1970 ',
+    'СР': 'Wed, 7 Jan 1970 ',
+    'ЧТ': 'Thu, 8 Jan 1970 ',
+    'ПТ': 'Fri, 9 Jan 1970 ',
+    'СБ': 'Sat, 10 Jan 1970 '
 };
-var GANGSTERS = ['Danny', 'Rusty', 'Linus'];
 
 function extractDay(timeString) {
     var reg = /ВС|ПН|ВТ|СР|ЧТ|ПТ|СБ/g;
@@ -47,7 +40,7 @@ function asTimeStamp(timeString, day) {
 
     var reg = /([0-1][0-9]|2[0-3]):([0-5][0-9])\+(\d+)/g;
     var time = reg.exec(timeString);
-    var zone = time[3];
+    var zone = extractZone(timeString);
 
     if (zone.length === 1) {
         zone = '0' + zone;
@@ -91,8 +84,9 @@ function gangsterIsFree(interval, gangsterSchedule) {
 }
 
 function goForIt(interval, schedule) {
-    for (var i = 0; i < Object.keys(schedule).length; i++) {
-        if (!gangsterIsFree(interval, schedule[GANGSTERS[i]])) {
+    var gangsters = Object.keys(schedule);
+    for (var i = 0; i < gangsters.length; i++) {
+        if (!gangsterIsFree(interval, schedule[gangsters[i]])) {
 
             return false;
         }
@@ -131,15 +125,15 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
         var suitableTimes = [];
         var bankWorkHours = bankDailyInterval(day, workingHours);
         var operationStart = bankWorkHours[0];
-        var operationEnd = operationStart + duration * SEC_IN_MIN * 1000;
+        var operationEnd = operationStart + duration * SEC_IN_MIN * MILLISECONDS;
         var dailyDeadline = bankWorkHours[1];
         while (operationEnd <= dailyDeadline) {
             if (goForIt([operationStart, operationEnd], schedule)) {
 
                 suitableTimes.push(operationStart);
             }
-            operationStart += SEC_IN_MIN * 1000;
-            operationEnd += SEC_IN_MIN * 1000;
+            operationStart += SEC_IN_MIN * MILLISECONDS;
+            operationEnd += SEC_IN_MIN * MILLISECONDS;
         }
 
         return suitableTimes;
@@ -187,7 +181,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
             }
             var stampGoTime = timesForTheJob[0];
             var zone = parseInt(extractZone(workingHours.from));
-            var goTime = new Date(stampGoTime + zone * 60 * SEC_IN_MIN * 1000);
+            var goTime = new Date(stampGoTime + zone * 60 * SEC_IN_MIN * MILLISECONDS);
             var hh = goTime.getUTCHours();
             var mm = goTime.getUTCMinutes();
             var dd = Object.keys(WORK_DAYS)[goTime.getUTCDay()];
@@ -209,7 +203,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
                 return false;
             }
 
-            var difference = 30 * SEC_IN_MIN * 1000;
+            var difference = 30 * SEC_IN_MIN * MILLISECONDS;
             for (var i = 0; i < timesForTheJob.length; i++) {
                 if (timesForTheJob[i] - timesForTheJob[0] >= difference) {
                     timesForTheJob.splice(0, i);
