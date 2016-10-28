@@ -87,14 +87,6 @@ function gangsterIsFree(interval, gangsterSchedule) {
 
 function teamIsFree(interval, schedule) {
     var gangsters = Object.keys(schedule);
-
-    /* for (var i = 0; i < gangsters.length; i++) {
-        if (!gangsterIsFree(interval, schedule[gangsters[i]])) {
-
-            return false;
-        }
-    }*/
-
     var teamIsReady = true;
     gangsters.forEach(function (gangster) {
         if (!gangsterIsFree(interval, schedule[gangster])) {
