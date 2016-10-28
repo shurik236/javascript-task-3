@@ -9,7 +9,9 @@ exports.isStar = true;
 
 
 var SEC_IN_MIN = 60;
+var MIN_IN_HOUR = 60;
 var MILLISECONDS = 1000;
+var DAY_LIMIT = 3;
 var WORK_DAYS = {
     'ВС': 'Sun, 4 Jan 1970 ',
     'ПН': 'Mon, 5 Jan 1970 ',
@@ -19,6 +21,7 @@ var WORK_DAYS = {
     'ПТ': 'Fri, 9 Jan 1970 ',
     'СБ': 'Sat, 10 Jan 1970 '
 };
+var TIME_REG = /([0-1][0-9]|2[0-3]):([0-5][0-9])\+(\d+)/;
 
 function extractDay(timeString) {
     var reg = /ВС|ПН|ВТ|СР|ЧТ|ПТ|СБ/g;
@@ -28,9 +31,15 @@ function extractDay(timeString) {
 }
 
 function extractZone(timeString) {
-    var reg = /([0-1][0-9]|2[0-3]):[0-5][0-9]\+(\d+)/g;
 
-    return reg.exec(timeString)[2];
+    return TIME_REG.exec(timeString)[3];
+}
+
+function extractTime(timeString) {
+    var time = TIME_REG.exec(timeString);
+
+    return time[1] + ':' + time[2];
+
 }
 
 function asTimeStamp(timeString, day) {
@@ -38,15 +47,14 @@ function asTimeStamp(timeString, day) {
         day = extractDay(timeString);
     }
 
-    var reg = /([0-1][0-9]|2[0-3]):([0-5][0-9])\+(\d+)/g;
-    var time = reg.exec(timeString);
+    var time = extractTime(timeString);
     var zone = extractZone(timeString);
 
     if (zone.length === 1) {
         zone = '0' + zone;
     }
 
-    var stdTimeString = day + time[1] + ':' + time[2] + ':00 +' + zone + '00';
+    var stdTimeString = day + time + ' +' + zone + '00';
 
     return Date.parse(stdTimeString);
 }
@@ -67,12 +75,6 @@ function gangsterInterval(entry) {
 }
 
 function gangsterIsFree(interval, gangsterSchedule) {
-
-    if (gangsterSchedule === undefined) {
-
-        return true;
-    }
-
     for (var i = 0; i < gangsterSchedule.length; i++) {
         if (overlap(gangsterInterval(gangsterSchedule[i]), interval)) {
 
@@ -83,16 +85,25 @@ function gangsterIsFree(interval, gangsterSchedule) {
     return true;
 }
 
-function goForIt(interval, schedule) {
+function teamIsFree(interval, schedule) {
     var gangsters = Object.keys(schedule);
-    for (var i = 0; i < gangsters.length; i++) {
+
+    /* for (var i = 0; i < gangsters.length; i++) {
         if (!gangsterIsFree(interval, schedule[gangsters[i]])) {
 
             return false;
         }
-    }
+    }*/
 
-    return true;
+    var teamIsReady = true;
+    gangsters.forEach(function (gangster) {
+        if (!gangsterIsFree(interval, schedule[gangster])) {
+
+            teamIsReady = false;
+        }
+    });
+
+    return teamIsReady;
 }
 
 function zeroPadded(number) {
@@ -115,9 +126,9 @@ function zeroPadded(number) {
 exports.getAppropriateMoment = function (schedule, duration, workingHours) {
     console.info(schedule, duration, workingHours);
 
-    var timesForTheJob = [];
-    if (findTime()) {
-        timesForTheJob = findTime();
+    var timesForRobbery = [];
+    if (findRobberyTime()) {
+        timesForRobbery = findRobberyTime();
     }
 
     // ищет подходящее время для начала операции в указанный день
@@ -128,7 +139,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
         var operationEnd = operationStart + duration * SEC_IN_MIN * MILLISECONDS;
         var dailyDeadline = bankWorkHours[1];
         while (operationEnd <= dailyDeadline) {
-            if (goForIt([operationStart, operationEnd], schedule)) {
+            if (teamIsFree([operationStart, operationEnd], schedule)) {
 
                 suitableTimes.push(operationStart);
             }
@@ -139,12 +150,12 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
         return suitableTimes;
     }
 
-    function findTime() {
+    function findRobberyTime() {
         var suitableTimes = [];
         var day;
         var days = Object.keys(WORK_DAYS);
-        for (var i = 1; i < 4; i++) {
-            day = WORK_DAYS[days[i]];
+        for (var i = 0; i < DAY_LIMIT; i++) {
+            day = WORK_DAYS[days[i + 1]];
             suitableTimes = suitableTimes.concat(findTodayTime(day));
         }
 
@@ -164,7 +175,7 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {Boolean}
          */
         exists: function () {
-            return (timesForTheJob.length > 0);
+            return timesForRobbery.length > 0;
         },
 
         /**
@@ -179,9 +190,9 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
 
                 return '';
             }
-            var stampGoTime = timesForTheJob[0];
+            var stampGoTime = timesForRobbery[0];
             var zone = parseInt(extractZone(workingHours.from));
-            var goTime = new Date(stampGoTime + zone * 60 * SEC_IN_MIN * MILLISECONDS);
+            var goTime = new Date(stampGoTime + zone * MIN_IN_HOUR * SEC_IN_MIN * MILLISECONDS);
             var hh = goTime.getUTCHours();
             var mm = goTime.getUTCMinutes();
             var dd = Object.keys(WORK_DAYS)[goTime.getUTCDay()];
@@ -198,15 +209,15 @@ exports.getAppropriateMoment = function (schedule, duration, workingHours) {
          * @returns {Boolean}
          */
         tryLater: function () {
-            if (!this.exists() || timesForTheJob.length < 2) {
+            if (!this.exists() || timesForRobbery.length < 2) {
 
                 return false;
             }
 
             var difference = 30 * SEC_IN_MIN * MILLISECONDS;
-            for (var i = 0; i < timesForTheJob.length; i++) {
-                if (timesForTheJob[i] - timesForTheJob[0] >= difference) {
-                    timesForTheJob.splice(0, i);
+            for (var i = 0; i < timesForRobbery.length; i++) {
+                if (timesForRobbery[i] - timesForRobbery[0] >= difference) {
+                    timesForRobbery.splice(0, i);
 
                     return true;
                 }
